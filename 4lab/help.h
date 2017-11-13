@@ -16,6 +16,8 @@
 #define LIMIT 12
 #define FILE 13
 #define PRINT 14
+#define NEWLINE 15
+#define CLEAR 16
 #define NOTCOMMAND -1
 
 int IsDecimal(char *str) {
@@ -58,6 +60,10 @@ int StrToInt(char *string) {
         return FILE;
     } else if (strcmp(string, "/print") == 0) {
         return PRINT;
+    } else if (strcmp(string, "\n") == 0) {
+        return NEWLINE;
+    } else if (strcmp(string, "/clear") == 0) {
+        return CLEAR;
     } else {
         return NOTCOMMAND;
     }

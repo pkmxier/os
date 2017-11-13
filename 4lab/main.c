@@ -202,151 +202,228 @@ void PrintFile(TFILE *file) {
 
 int main(int argc, char *argv[]) {
     TFILE *cur;
+    int isInteractive = 0;
+    char args[argc][256];
+    for (int i = 0; i < argc; ++i) {
+        strcpy(args[i], argv[i]);
+    }
 
-    if (argc == 2) {
-        if (StrToInt(argv[1]) == HELP) {
-            PrintUsage();
-        } else {
-            PrintWrong();
-            return 1;
-        }
-    } else if (argc >= 3 && argc <= 6) {
-        switch(StrToInt(argv[1])) {
-            case SWITCH:
-                if (argc == 4 && StrToInt(argv[2]) == FILE) {
-                    cur = OpenFile(argv[3], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case STATUS:
-                if (argc == 4 && StrToInt(argv[2]) == FILE) {
-                    cur = OpenFile(argv[3], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
+    if (argc == 1) {
+        isInteractive = 1;
+    }
 
-                    PrintStatus(cur);
-                    return 0;
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case GETLINE:
-                if (argc == 5 && IsDecimal(argv[2]) && StrToInt(argv[3]) == FILE) {
-                    cur = OpenFile(argv[4], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-
-                    PrintLine(cur, atoi(argv[2]));
-                    return 0;
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case FIND:
-                if (argc == 6 && StrToInt(argv[2]) == WHERETOSEARCH && StrToInt(argv[4]) == FILE) {
-                    cur = OpenFile(argv[5], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-
-                    FindPattern(cur, argv[2], argv[3]);
-                    return 0;
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case WRITE:
-                if (argc == 6 && IsDecimal(argv[2]) && StrToInt(argv[4]) == FILE) {
-                    cur = OpenFile(argv[5], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-
-                    WriteWithin(cur, atoi(argv[2]), argv[3]);
-                    return 0;
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case ERASE:
-                if (argc == 6 && IsDecimal(argv[2]) && IsDecimal(argv[3]) && StrToInt(argv[4]) == FILE) {
-                    cur = OpenFile(argv[5], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-
-                    EraseWithin(cur, atoi(argv[2]), atoi(argv[3]));
-                    return 0;
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case LIMIT:
-                if (argc == 6 && IsDecimal(argv[2]) && IsDecimal(argv[3]) && StrToInt(argv[4]) == FILE) {
-                    cur = OpenFile(argv[5], atoi(argv[2]), atoi(argv[3]));
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-
-                    SetLimit(cur, atoi(argv[2]), atoi(argv[3]));
-                    return 0;
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case FILE:
-                if (argc == 3) {
-                    cur = OpenFile(argv[2], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            case PRINT:
-                if (argc == 4 && StrToInt(argv[2]) == FILE) {
-                    cur = OpenFile(argv[3], DEFAULT_MIN, DEFAULT_MAX);
-                    if (cur == NULL) {
-                        printf("Can`t open file\n");
-                        return 2;
-                    }
-
-                    PrintFile(cur);
-                } else {
-                    PrintWrong();
-                    return 1;
-                }
-                break;
-            default:
+    while (1) {
+        if (argc == 2) {
+            if (StrToInt(args[1]) == HELP) {
+                PrintUsage();
+            } else if (StrToInt(args[1]) == CLEAR) {
+                system("clear");
+            } else if (StrToInt(args[1]) != NEWLINE) {
                 PrintWrong();
-                return 1;
-                break;
+                if (!isInteractive) {
+                    return 1;
+                }
+            }
+        } else if (argc >= 3 && argc <= 6) {
+            switch(StrToInt(args[1])) {
+                case SWITCH:
+                    if (argc == 4 && StrToInt(args[2]) == FILE) {
+                        cur = OpenFile(args[3], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        isInteractive = 1;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case STATUS:
+                    if (argc == 4 && StrToInt(args[2]) == FILE) {
+                        cur = OpenFile(args[3], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        PrintStatus(cur);
+                        return 0;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case GETLINE:
+                    if (argc == 5 && IsDecimal(args[2]) && StrToInt(args[3]) == FILE) {
+                        cur = OpenFile(args[4], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        PrintLine(cur, atoi(args[2]));
+                        return 0;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case FIND:
+                    if (argc == 6 && StrToInt(args[2]) == WHERETOSEARCH && StrToInt(args[4]) == FILE) {
+                        cur = OpenFile(args[5], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        FindPattern(cur, args[2], args[3]);
+                        return 0;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case WRITE:
+                    if (argc == 6 && IsDecimal(args[2]) && StrToInt(args[4]) == FILE) {
+                        cur = OpenFile(args[5], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        WriteWithin(cur, atoi(args[2]), args[3]);
+                        return 0;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case ERASE:
+                    if (argc == 6 && IsDecimal(args[2]) && IsDecimal(args[3]) && StrToInt(args[4]) == FILE) {
+                        cur = OpenFile(args[5], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        EraseWithin(cur, atoi(args[2]), atoi(args[3]));
+                        return 0;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case LIMIT:
+                    if (argc == 6 && IsDecimal(args[2]) && IsDecimal(args[3]) && StrToInt(args[4]) == FILE) {
+                        cur = OpenFile(args[5], atoi(args[2]), atoi(args[3]));
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        SetLimit(cur, atoi(args[2]), atoi(args[3]));
+                        isInteractive = 1;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case FILE:
+                    if (argc == 3) {
+                        cur = OpenFile(args[2], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        isInteractive = 1;
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                case PRINT:
+                    if (argc == 4 && StrToInt(args[2]) == FILE) {
+                        cur = OpenFile(args[3], DEFAULT_MIN, DEFAULT_MAX);
+                        if (cur == NULL) {
+                            printf("Can`t open file\n");
+                            return 2;
+                        }
+
+                        PrintFile(cur);
+                    } else {
+                        PrintWrong();
+                        if (!isInteractive) {
+                            return 1;
+                        }
+                    }
+                    break;
+                default:
+                    PrintWrong();
+                    if (!isInteractive) {
+                        return 1;
+                    }
+                    break;
+            }
+        } else if (argc != 1) {
+            PrintWrong();
         }
-    } else if (argc != 1) {
-        PrintWrong();
+
+        if (!isInteractive) {
+            return 0;
+        } else {
+            char buffer[256];
+            int c = getchar();
+            if (c == EOF) {
+                return 0;
+            }
+            int i = 0;
+            int j = 1;
+
+            while (c != '\n' && i != 256) {
+                if (c == ' ') {
+                    buffer[i] = '\0';
+                    strcpy(args[j], buffer);
+                    ++j;
+                    i = 0;
+                    c = getchar();
+                    continue;
+                }
+
+                buffer[i++] = c;
+                c = getchar();
+            }
+
+            if (c == '\n') {
+                if (i == 0) {
+                    buffer[0] = '\n';
+                    ++i;
+                }
+                buffer[i] = '\0';
+                strcpy(args[j], buffer);
+            }
+
+
+            argc = j + 1;
+        }
     }
     return 0;
 }
