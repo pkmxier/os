@@ -29,10 +29,8 @@ TFILE * OpenFile(char *path, int min, int max) {
     return file;
 }
 
-int IsDigitOrLetter(char c) {
-    return (c >= '0' && c <= '9') ||
-           (c >= 'a' && c <= 'z') ||
-           (c >= 'A' && c <= 'Z');
+int IsPrintable(char c) {
+    return (c >= 33);
 }
 void PrintStatus(TFILE *file) {
     int symbolsCount = 0;
@@ -40,7 +38,7 @@ void PrintStatus(TFILE *file) {
     char c;
 
     while (read(file->fd, &c, 1) == 1) {
-        if (IsDigitOrLetter(c)) {
+        if (IsPrintable(c)) {
             ++symbolsCount;
         } else if (c == '\n') {
             ++linesCount;
@@ -56,26 +54,52 @@ void PrintStatus(TFILE *file) {
     }
 
     printf("Number of lines: %d, number of symbols: %d\n", linesCount, symbolsCount);
+    lseek(file->fd, 0, SEEK_SET);
 }
 
 void FindPattern(TFILE *file, char *mode, char *pattern) {
     char c;
     int i = 0;
     int len = strlen(pattern);
-    int size = len > sysconf(_SC_PAGE_SIZE) ? len : sysconf(_SC_PAGESIZE);
 
-    char *tmp = (char *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, file->fd, SEEK_SET);
-    tmp[size] = '\0';
+    struct stat stat;
+    fstat(file->fd, &stat);
+    lseek(file->fd, 0, SEEK_SET);
+    int size = stat.st_size;
 
-    if (!strstr(tmp, pattern)) {
-        printf("Can`t find such word\n");
-    } else {
-        printf("Yes\n");
+    char *tmp = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED, file->fd, SEEK_SET);
+
+    if (strcmp(mode, "/etc") == 0 || 1) {
+        for (int i = 0; i < size - len + 1; ++i) {
+            for (int j = 0; j < len; ++j) {
+                if (pattern[j] != tmp[i + j]) {
+                    if (strcmp(mode, "/begin") == 0) {
+                        ++i;
+                    }
+                    break;
+                }
+                if (j == len - 1) {
+                    if (strcmp(mode, "/end") == 0) {
+                        if (i + j != size - 1 && IsPrintable(tmp[i + j + 1])) {
+                            break;
+                        }
+                    }
+
+                    printf("Yes\n");
+                    lseek(file->fd, 0, SEEK_SET);
+                    return;
+                }
+            }
+        }
+        printf("No\n");
     }
+
+    lseek(file->fd, 0, SEEK_SET);
 }
 
 void PrintLine(TFILE *file, int number) {
     char c;
+    int tmp = number;
 
     while (number != 1 && read(file->fd, &c, 1) == 1) {
         if (c == '\n') {
@@ -92,10 +116,13 @@ void PrintLine(TFILE *file, int number) {
         return;
     }
 
+    printf("Line %d: ", tmp);
+
     while (read(file->fd, &c, 1) == 1 && c != '\n') {
         printf("%c", c);
     }
     printf("\n");
+    lseek(file->fd, 0, SEEK_SET);
 }
 
 void WriteWithin(TFILE *file, int position, char *text) {
@@ -133,6 +160,7 @@ void WriteWithin(TFILE *file, int position, char *text) {
             return;
         }
     }
+    lseek(file->fd, 0, SEEK_SET);
 }
 
 void EraseWithin(TFILE *file, int position, int count) {
@@ -165,6 +193,7 @@ void EraseWithin(TFILE *file, int position, int count) {
             return;
         }
     }
+    lseek(file->fd, 0, SEEK_SET);
 }
 
 void SetLimit(TFILE *file, int min, int max) {
@@ -191,6 +220,7 @@ void SetLimit(TFILE *file, int min, int max) {
             ++i;
         }
     }
+    lseek(file->fd, 0, SEEK_SET);
 }
 
 void PrintFile(TFILE *file) {
@@ -198,6 +228,7 @@ void PrintFile(TFILE *file) {
     while (read(file->fd, &c, 1) == 1) {
         printf("%c", c);
     }
+    lseek(file->fd, 0, SEEK_SET);
 }
 
 int main(int argc, char *argv[]) {
@@ -547,6 +578,13 @@ int main(int argc, char *argv[]) {
                     } else {
                         PrintFile(cur);
                     }
+                } else {
+                    PrintWrong();
+                }
+                break;
+            case HELP:
+                if (argc == 2) {
+                    PrintUsage();
                 } else {
                     PrintWrong();
                 }

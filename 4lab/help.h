@@ -73,7 +73,9 @@ int StrToInt(char *string) {
 }
 
 void PrintUsage() {
-    printf("Usage: ./a.out /\"command name\" /file \"path\"\n"
+    printf("Usage:\n"
+           "Noninteractive mode - ./a.out /\"command name\" /file \"path\"\n"
+           "Interactive mode - /\"command name\"\n"
            "commands:\n"
            "    help - print usage\n"
            "    exit - exit from program\n"
