@@ -12,6 +12,7 @@ typedef struct MD
     char message[128];
     int action;
     int amount;
+    int whom;
 } MessageData;
 
 int main(int argc, char const *argv[])
@@ -44,34 +45,36 @@ int main(int argc, char const *argv[])
             case 1:
                 if (b.get_money(m->clientId, m->amount)) {
                     sprintf(answer, "Here is your %d dollars", m->amount);
-                    zmq_msg_init_size(&reply, 128);
-                    memcpy(zmq_msg_data(&reply), answer, 128);
                     std::cout << "I`ve just given " << m->amount << " dollars to " << m->clientId << "..." << std::endl;
                 } else {
                     sprintf(answer, "You don`t have enough money");
-                    zmq_msg_init_size(&reply, strlen(answer) + 1);
-                    memcpy(zmq_msg_data(&reply), answer, strlen(answer) + 1);
                     std::cout << "Haha, " << m->clientId << " doesn`t have " << m->amount << " dollars!" << std::endl;
                 }
                 break;
             case 2:
                 b.add_money(m->clientId, m->amount);
                 sprintf(answer, "Thank you for %d dollars", m->amount);
-                zmq_msg_init_size(&reply, strlen(answer) + 1);
-                memcpy(zmq_msg_data(&reply), answer, strlen(answer) + 1);
                 std::cout << m->clientId << " has just put " << m->amount << " dollars into me!" << std::endl;
                 break;
             case 3:
                 sprintf(answer, "Your balance is %d", b.balance(m->clientId));
-                zmq_msg_init_size(&reply, strlen(answer) + 1);
-                memcpy(zmq_msg_data(&reply), answer, strlen(answer) + 1);
                 std::cout << m->clientId << " has just requested his balance" << std::endl;
                 break;
             case 4:
-
+                if (b.balance(m->clientId) >= m->amount) {
+                    b.get_money(m->clientId, m->amount);
+                    b.add_money(m->whom, m->amount);
+                    sprintf(answer, "Done");
+                    std::cout << "Transfered " << m->amount << " dollars from " << m->clientId << " to " << m->whom << std::endl;
+                } else {
+                    sprintf(answer, "You don`t have enough money");
+                    std::cout << m->clientId << " doesn`t have " << m->amount << " dollars to transfer them to " << m->whom << std::endl;
+                }
                 break;
         }
 
+        zmq_msg_init_size(&reply, strlen(answer) + 1);
+        memcpy(zmq_msg_data(&reply), answer, strlen(answer) + 1);
         zmq_msg_send(&reply, serverSocket, 0);
         zmq_msg_close(&reply);
     }

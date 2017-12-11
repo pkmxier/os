@@ -31,8 +31,11 @@ void Bank::add_money(uint32_t id, uint32_t amount) {
     for (auto it : data) {
         if (id == it->get_id()) {
             it->add_money(amount);
+            return;
         }
     }
+
+    data.push_back(std::make_shared<Client> (id, amount));
 }
 
 bool Bank::get_money(uint32_t id, uint32_t amount) {

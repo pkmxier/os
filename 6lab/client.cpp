@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include "zmq.h"
 #include <unistd.h>
+#include <ctime>
+#include <random>
 #include <iostream>
 #include <string>
 
@@ -13,11 +15,13 @@ typedef struct MD
     char message[128];
     int action;
     int amount;
+    int whom;
 } MessageData;
 
 int main(int argc, char const *argv[])
 {
     void* context = zmq_ctx_new();
+    srand(time(0));
     int clientId = std::rand();
     printf("Client %d Starting...\n", clientId);
     std::cout << "1 - get money" << std::endl;
@@ -51,6 +55,7 @@ int main(int argc, char const *argv[])
                 sprintf(md.message, "balance");
                 break;
             case 4:
+                std::cin >> md.whom >> md.amount;
                 sprintf(md.message, "send to somebody");
                 break;
         }
